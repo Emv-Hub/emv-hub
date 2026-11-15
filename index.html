@@ -148,43 +148,50 @@ footer{border-top:1px solid var(--ln);padding:36px 0;text-align:center;color:var
 <dialog id="dm"><div class="dp"><button type="button" class="bt ib x" data-x aria-label="Close">X</button><div id="ad"></div></div></dialog>
 
 <script>
-const W3F_KEY = "fd9dd03e-2e91-47c5-8fbe-af437778ec08";
+var W3F_KEY = "fd9dd03e-2e91-47c5-8fbe-af437778ec08";
 function sendW3F(subject, data) {
+  var payload = Object.assign({
+    access_key: W3F_KEY,
+    subject: subject,
+    from_name: "EMV HUB"
+  }, data);
   return fetch("https://api.web3forms.com/submit", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Accept": "application/json"
     },
-    body: JSON.stringify({
-      access_key: W3F_KEY,
-      subject: subject,
-      from_name: "EMV HUB",
-      ...data
-    })
-  }).catch(() => {});
+    body: JSON.stringify(payload)
+  }).catch(function() {});
 }
 
-const $ = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&","<":"<",">":">",'"':""","'":"'"}[c]));
-const mem = {};
-const ST = {
-  get(k, d) {
+var $ = function(s, r) { return (r || document).querySelector(s); };
+var $$ = function(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var esc = function(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return {"&":"&","<":"<",">":">",'"':""","'":"'"}[c];
+  });
+};
+
+var mem = {};
+var ST = {
+  get: function(k, d) {
     try {
-      const v = JSON.parse(localStorage.getItem(k));
-      return v ?? (k in mem ? mem[k] : d);
-    } catch (e) {
-      return k in mem ? mem[k] : d;
-    }
+      var raw = localStorage.getItem(k);
+      if (raw !== null) {
+        var v = JSON.parse(raw);
+        if (v !== null && v !== undefined) return v;
+      }
+    } catch (e) {}
+    return (k in mem) ? mem[k] : d;
   },
-  set(k, v) {
+  set: function(k, v) {
     mem[k] = v;
     try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {}
   }
 };
 
-const IC = {
+var IC = {
   chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>',
   wave: '<path d="M8 6c3 3 3 9 0 12M12 4c4.5 4.5 4.5 11.5 0 16M16 2c6 6 6 14 0 20"/>',
   nfc: '<rect x="3" y="3" width="18" height="18" rx="5"/><path d="M9 9c2 2 2 4 0 6M13 7c3.5 3.5 3.5 6.5 0 10"/>',
@@ -194,16 +201,20 @@ const IC = {
   eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
 };
-const ico = n => `<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="url(#sg)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg></span>`;
-const card = (i, n, t, d, x = "") => `<article class="gl card rv" style="--d:${i * 70}ms">${ico(n)}<h3>${esc(t)}</h3><p>${esc(d)}</p>${x}</article>`;
+var ico = function(n) {
+  return '<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="url(#sg)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[n] + '</svg></span>';
+};
+var card = function(i, n, t, d, x) {
+  return '<article class="gl card rv" style="--d:' + (i * 70) + 'ms">' + ico(n) + '<h3>' + esc(t) + '</h3><p>' + esc(d) + '</p>' + (x || "") + '</article>';
+};
 
-const T = [
+var T = [
   ["chip", "EMV Chip", "Chip cards create a unique cryptogram for every payment, so captured data cannot be replayed like static magnetic-stripe data."],
   ["wave", "Contactless", "Tap-to-pay uses short-range NFC (ISO/IEC 14443) with the same EMV cryptography, plus limits and occasional PIN checks as risk controls."],
   ["nfc", "NFC Technology", "Near-field communication runs at 13.56 MHz over a few centimetres and powers payments, transit, access control and smart tags."]
 ];
 
-const P = [
+var P = [
   ["Contact Smart Card Reader", "Readers", "reader", "PC/SC USB reader for ISO 7816 contact cards, ideal for dev cards and learning labs.", 29],
   ["Contactless NFC Reader", "Readers", "nfc", "ISO 14443 A/B PC/SC reader for contactless dev and test cards.", 39],
   ["NFC Dev Board", "NFC Dev", "nfc", "PN532-class board with SPI, I2C and UART for firmware experiments.", 24],
@@ -214,7 +225,7 @@ const P = [
   ["Skimmer Inspection Kit", "Security", "shield", "Light, loupe and checklist for auditing ATMs and POS terminals.", 39]
 ];
 
-const S = [
+var S = [
   ["APDU Console", "Educational", "code", "Send and inspect APDUs on your own dev cards with annotated responses."],
   ["BER-TLV Decoder", "Educational", "code", "Parse EMV tag structures into readable fields and learn what each tag means."],
   ["EMV Sandbox", "Test environment", "chip", "Simulated issuer and acquirer for practising flows with synthetic test data only."],
@@ -223,14 +234,14 @@ const S = [
   ["Terminal Audit Scanner", "Security testing", "eye", "Checklists and scanners for PCI-aligned terminal and network reviews."]
 ];
 
-const C = [
+var C = [
   ["shield", "Card Security Awareness", "Know how chips, PINs and cryptograms protect you, and what they do not."],
   ["eye", "Fraud Prevention", "Enable instant alerts, use 3-D Secure and never share one-time codes or PINs."],
   ["lock", "Secure Payment Practices", "Prefer chip, tap or wallet tokens and keep devices and apps updated."],
   ["reader", "Skimming Protection", "Inspect terminals, shield your PIN and report anything suspicious to your bank."]
 ];
 
-const K = [
+var K = [
   "Wiggle the card slot, reader and keypad. Loose parts are a red flag.",
   "Look for odd add-ons, mismatched colours or pinhole cameras.",
   "Cover the keypad whenever you enter your PIN.",
@@ -238,7 +249,7 @@ const K = [
   "Turn on instant transaction alerts and review statements weekly."
 ];
 
-const L = {
+var L = {
   Beginner: [
     ["What is EMV?", "A five-minute primer on chip cards, PINs and why chips replaced magnetic stripes."],
     ["How tap-to-pay works", "Follow a contactless payment from the tap to the approval message."],
@@ -259,182 +270,270 @@ const L = {
   ]
 };
 
-const det = l => `<details class="gl dt rv"><summary>${esc(l[0])}</summary><p>${esc(l[1])}</p></details>`;
-const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => {
-  if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
-}), { threshold: .1 }) : null;
-const obs = () => $$(".rv:not(.in)").forEach(e => io ? io.observe(e) : e.classList.add("in"));
+var det = function(l) {
+  return '<details class="gl dt rv"><summary>' + esc(l[0]) + '</summary><p>' + esc(l[1]) + '</p></details>';
+};
 
-$("#gt").innerHTML = T.map((x, i) => card(i, ...x)).join("");
-const cats = ["All", ...new Set(P.map(p => p[1]))];
-$("#fl").innerHTML = cats.map((c, i) => `<button class="ch${i ? "" : " on"}" data-c="${c}">${c}</button>`).join("");
-const rp = c => $("#gp").innerHTML = P.filter(p => c == "All" || p[1] == c).map((p, i) => card(i, p[2], p[0], p[3], `<div class="pr"><span class="tg">${p[1]}</span><b>$${p[4]}</b></div><button class="bt" data-q="${esc(p[0])}">Enquire</button>`)).join("");
+$("#gt").innerHTML = T.map(function(x, i) { return card(i, x[0], x[1], x[2]); }).join("");
+
+var cats = ["All"];
+P.forEach(function(p) { if (cats.indexOf(p[1]) === -1) cats.push(p[1]); });
+$("#fl").innerHTML = cats.map(function(c, i) {
+  return '<button class="ch' + (i ? "" : " on") + '" data-c="' + c + '">' + c + '</button>';
+}).join("");
+
+var rp = function(c) {
+  $("#gp").innerHTML = P.filter(function(p) { return c === "All" || p[1] === c; }).map(function(p, i) {
+    return card(i, p[2], p[0], p[3], '<div class="pr"><span class="tg">' + p[1] + '</span><b>$' + p[4] + '</b></div><button class="bt" data-q="' + esc(p[0]) + '">Enquire</button>');
+  }).join("");
+};
 rp("All");
-$("#gs").innerHTML = S.map((s, i) => card(i, s[2], s[0], s[3], `<span class="tg">${s[1]}</span>`)).join("");
-$("#gc").innerHTML = C.map((c, i) => card(i, ...c)).join("");
-$("#ck").innerHTML = K.map(k => `<label class="ki"><input type="checkbox"><span>${esc(k)}</span></label>`).join("");
-const tabs = Object.keys(L);
-$("#tb").innerHTML = tabs.map((t, i) => `<button class="ch${i ? "" : " on"}" data-t="${t}">${t}</button>`).join("");
-const rl = t => $("#ll").innerHTML = L[t].map(det).join("");
+
+$("#gs").innerHTML = S.map(function(s, i) {
+  return card(i, s[2], s[0], s[3], '<span class="tg">' + s[1] + '</span>');
+}).join("");
+
+$("#gc").innerHTML = C.map(function(c, i) { return card(i, c[0], c[1], c[2]); }).join("");
+
+$("#ck").innerHTML = K.map(function(k) {
+  return '<label class="ki"><input type="checkbox"><span>' + esc(k) + '</span></label>';
+}).join("");
+
+var tabs = Object.keys(L);
+$("#tb").innerHTML = tabs.map(function(t, i) {
+  return '<button class="ch' + (i ? "" : " on") + '" data-t="' + t + '">' + t + '</button>';
+}).join("");
+
+var rl = function(t) { $("#ll").innerHTML = L[t].map(det).join(""); };
 rl("Beginner");
 
-const IDX = [
-  ...T.map(x => [x[1], x[2], "tech", "Technology"]),
-  ...P.map(p => [p[0], p[3], "hardware", "Hardware"]),
-  ...S.map(s => [s[0], s[3], "software", "Software"]),
-  ...C.map(c => [c[1], c[2], "security", "Cybersecurity"]),
-  ...Object.values(L).flat().map(l => [l[0], l[1], "learn", "Learning"])
-];
-obs();
+var IDX = [];
+T.forEach(function(x) { IDX.push([x[1], x[2], "tech", "Technology"]); });
+P.forEach(function(p) { IDX.push([p[0], p[3], "hardware", "Hardware"]); });
+S.forEach(function(s) { IDX.push([s[0], s[3], "software", "Software"]); });
+C.forEach(function(c) { IDX.push([c[1], c[2], "security", "Cybersecurity"]); });
+Object.keys(L).forEach(function(k) {
+  L[k].forEach(function(l) { IDX.push([l[0], l[1], "learn", "Learning"]); });
+});
 
-$("#fl").onclick = e => {
-  const b = e.target.closest("[data-c]");
+$("#fl").onclick = function(e) {
+  var b = e.target.closest("[data-c]");
   if (!b) return;
-  $$("#fl .ch").forEach(x => x.classList.toggle("on", x == b));
+  $$("#fl .ch").forEach(function(x) { x.classList.toggle("on", x === b); });
   rp(b.dataset.c);
-  obs();
 };
-$("#tb").onclick = e => {
-  const b = e.target.closest("[data-t]");
+
+$("#tb").onclick = function(e) {
+  var b = e.target.closest("[data-t]");
   if (!b) return;
-  $$("#tb .ch").forEach(x => x.classList.toggle("on", x == b));
+  $$("#tb .ch").forEach(function(x) { x.classList.toggle("on", x === b); });
   rl(b.dataset.t);
-  obs();
 };
-$("#gp").onclick = e => {
-  const b = e.target.closest("[data-q]");
+
+$("#gp").onclick = function(e) {
+  var b = e.target.closest("[data-q]");
   if (b) {
     $("#cf [name=t]").value = "Enquiry: " + b.dataset.q;
     location.hash = "contact";
-    setTimeout(() => $("#cf [name=n]").focus({ preventScroll: true }), 500);
+    setTimeout(function() { $("#cf [name=n]").focus(); }, 400);
   }
 };
-$("#ck").onchange = () => {
-  const n = $$("#ck input:checked").length;
+
+$("#ck").onchange = function() {
+  var n = $$("#ck input:checked").length;
   $("#rg").style.strokeDashoffset = 264 * (1 - n / K.length);
   $("#rn").textContent = n + "/" + K.length;
 };
-$("#mb").onclick = () => $("#nv").classList.toggle("open");
-$("#nv").onclick = () => $("#nv").classList.remove("open");
-document.addEventListener("pointermove", e => {
-  const c = e.target.closest && e.target.closest(".card");
+
+$("#mb").onclick = function() { $("#nv").classList.toggle("open"); };
+$("#nv").onclick = function() { $("#nv").classList.remove("open"); };
+
+document.addEventListener("pointermove", function(e) {
+  var c = e.target.closest && e.target.closest(".card");
   if (c) {
-    const r = c.getBoundingClientRect();
-    c.style.setProperty("--mx", e.clientX - r.left + "px");
-    c.style.setProperty("--my", e.clientY - r.top + "px");
+    var r = c.getBoundingClientRect();
+    c.style.setProperty("--mx", (e.clientX - r.left) + "px");
+    c.style.setProperty("--my", (e.clientY - r.top) + "px");
   }
 });
-$$("dialog").forEach(d => d.addEventListener("click", e => {
-  if (e.target == d || e.target.closest("[data-x]")) d.close();
-}));
 
-$("#sb").onclick = () => { $("#ds").showModal(); $("#q").focus(); };
-addEventListener("keydown", e => {
-  if ((e.ctrlKey || e.metaKey) && e.key == "k") { e.preventDefault(); $("#sb").click(); }
+$$("dialog").forEach(function(d) {
+  d.addEventListener("click", function(e) {
+    if (e.target === d || e.target.closest("[data-x]")) d.close();
+  });
 });
-$("#q").oninput = e => {
-  const q = e.target.value.toLowerCase().trim();
-  const r = q ? IDX.filter(x => (x[0] + " " + x[1]).toLowerCase().includes(q)).slice(0, 8) : [];
-  $("#qr").innerHTML = !q ? "" : r.length ? r.map(x => `<a href="#${x[2]}"><small>${x[3]}</small><b>${esc(x[0])}</b><span class="mu">${esc(x[1])}</span></a>`).join("") : '<p class="mu">No matches. Try chip, reader or skimming.</p>';
-};
-$("#qr").onclick = e => { if (e.target.closest("a")) $("#ds").close(); };
 
-const hx = a => [...new Uint8Array(a)].map(b => b.toString(16).padStart(2, "0")).join("");
-const H = async (s, p) => hx(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s + p)));
-const me = () => { const e = ST.get("s", null); return ST.get("u", []).find(u => u.e == e); };
-const ui = () => { const u = me(); $("#ab").textContent = u ? u.n.split(" ")[0] : "Sign in"; };
+$("#sb").onclick = function() { $("#ds").showModal(); $("#q").focus(); };
+window.addEventListener("keydown", function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); $("#sb").click(); }
+});
+
+$("#q").oninput = function(e) {
+  var q = e.target.value.toLowerCase().trim();
+  var r = q ? IDX.filter(function(x) { return (x[0] + " " + x[1]).toLowerCase().indexOf(q) !== -1; }).slice(0, 8) : [];
+  $("#qr").innerHTML = !q ? "" : r.length ? r.map(function(x) {
+    return '<a href="#' + x[2] + '"><small>' + x[3] + '</small><b>' + esc(x[0]) + '</b><span class="mu">' + esc(x[1]) + '</span></a>';
+  }).join("") : '<p class="mu">No matches. Try chip, reader or skimming.</p>';
+};
+$("#qr").onclick = function(e) { if (e.target.closest("a")) $("#ds").close(); };
+
+function fallbackHash(str) {
+  var h = 5381;
+  for (var i = 0; i < str.length; i++) {
+    h = ((h << 5) + h) + str.charCodeAt(i);
+  }
+  return "fb_" + (h >>> 0).toString(16);
+}
+
+function H(s, p) {
+  var txt = s + p;
+  if (window.crypto && window.crypto.subtle) {
+    return window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt)).then(function(buf) {
+      var arr = Array.prototype.slice.call(new Uint8Array(buf));
+      return arr.map(function(b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+    }).catch(function() {
+      return fallbackHash(txt);
+    });
+  }
+  return Promise.resolve(fallbackHash(txt));
+}
+
+function rndHex() {
+  if (window.crypto && window.crypto.getRandomValues) {
+    var a = new Uint8Array(8);
+    window.crypto.getRandomValues(a);
+    return Array.prototype.slice.call(a).map(function(b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+  }
+  return Math.random().toString(16).slice(2) + Date.now().toString(16);
+}
+
+var me = function() {
+  var e = ST.get("s", null);
+  return ST.get("u", []).find(function(u) { return u.e === e; });
+};
+var ui = function() {
+  var u = me();
+  $("#ab").textContent = u ? u.n.split(" ")[0] : "Sign in";
+};
 ui();
 
-let mode = "in";
-$$("#fa [data-m]").forEach(b => b.onclick = () => {
-  mode = b.dataset.m;
-  $$("#fa [data-m]").forEach(x => x.classList.toggle("on", x == b));
-  $("#fn").hidden = mode == "in";
-  $("#sbm").textContent = mode == "in" ? "SIGN IN" : "CREATE ACCOUNT";
-  $("#am").textContent = "";
+var mode = "in";
+$$("#fa [data-m]").forEach(function(b) {
+  b.onclick = function() {
+    mode = b.dataset.m;
+    $$("#fa [data-m]").forEach(function(x) { x.classList.toggle("on", x === b); });
+    $("#fn").hidden = (mode === "in");
+    $("#sbm").textContent = (mode === "in") ? "SIGN IN" : "CREATE ACCOUNT";
+    $("#am").textContent = "";
+  };
 });
 
-$("#fa").onsubmit = async ev => {
+$("#fa").onsubmit = function(ev) {
   ev.preventDefault();
-  const f = new FormData(ev.target);
-  const e = String(f.get("e")).trim().toLowerCase();
-  const p = String(f.get("p"));
-  const m = $("#am");
-  try {
-    const AU = ST.get("u", []);
-    if (mode == "up") {
-      if (AU.some(u => u.e == e)) { m.textContent = "That email is already registered."; return; }
-      const s = hx(crypto.getRandomValues(new Uint8Array(8)));
-      const name = String(f.get("n")).trim() || "Member";
-      AU.push({ n: name, e, s, h: await H(s, p), r: AU.length ? "member" : "admin" });
-      ST.set("u", AU);
-      $("#sbm").disabled = true;
-      m.textContent = "Creating account...";
-      await sendW3F("New Account Registration - EMV HUB", { type: "Account Registration", name: name, email: e });
-      $("#sbm").disabled = false;
-    } else {
-      const u = AU.find(u => u.e == e);
-      if (!u || u.h != await H(u.s, p)) { m.textContent = "Incorrect email or password."; return; }
+  var f = new FormData(ev.target);
+  var e = String(f.get("e")).trim().toLowerCase();
+  var p = String(f.get("p"));
+  var m = $("#am");
+  var AU = ST.get("u", []);
+
+  if (mode === "up") {
+    if (AU.some(function(u) { return u.e === e; })) {
+      m.textContent = "That email is already registered.";
+      return;
     }
-    ST.set("s", e);
-    ev.target.reset();
-    m.textContent = "";
-    $("#da").close();
-    ui();
-  } catch (x) {
-    $("#sbm").disabled = false;
-    m.textContent = "Something went wrong. Please try again.";
+    var s = rndHex();
+    var name = String(f.get("n")).trim() || "Member";
+    $("#sbm").disabled = true;
+    m.textContent = "Creating account...";
+    H(s, p).then(function(hash) {
+      AU.push({ n: name, e: e, s: s, h: hash, r: AU.length ? "member" : "admin" });
+      ST.set("u", AU);
+      return sendW3F("New Account Registration - EMV HUB", { type: "Account Registration", name: name, email: e });
+    }).then(function() {
+      $("#sbm").disabled = false;
+      ST.set("s", e);
+      ev.target.reset();
+      m.textContent = "";
+      $("#da").close();
+      ui();
+    });
+  } else {
+    var u = AU.find(function(x) { return x.e === e; });
+    if (!u) {
+      m.textContent = "Account not found. Click Register above to create one.";
+      return;
+    }
+    H(u.s, p).then(function(hash) {
+      if (u.h !== hash) {
+        m.textContent = "Incorrect password.";
+        return;
+      }
+      ST.set("s", e);
+      ev.target.reset();
+      m.textContent = "";
+      $("#da").close();
+      ui();
+    });
   }
 };
 
-const dash = () => {
-  const u = me();
+var dash = function() {
+  var u = me();
   if (!u) return;
-  const A = u.r == "admin";
-  const sb = ST.get("n", []);
-  const ms = ST.get("m", []);
-  const us = ST.get("u", []);
-  $("#ad").innerHTML = `<h3 class="sil">${A ? "ADMIN DASHBOARD" : "MY ACCOUNT"}</h3><p class="mu">${esc(u.n)} - ${esc(u.e)} - ${u.r}</p>${A ? `<div class="kp">${[["Users", us.length], ["Subscribers", sb.length], ["Messages", ms.length], ["Products", P.length]].map(k => `<div><b>${k[1]}</b><span>${k[0]}</span></div>`).join("")}</div><h4>Subscribers</h4>${sb.length ? `<ul>${sb.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : '<p class="mu">None yet.</p>'}<h4>Messages</h4>${ms.length ? `<ul>${ms.map(m => `<li><b>${esc(m.n)}</b> (${esc(m.e)}): ${esc(m.t)}</li>`).join("")}</ul>` : '<p class="mu">None yet.</p>'}<button class="bt" id="cl">Clear sample data</button>` : ""}<button class="bt" id="so">Sign out</button>`;
+  var A = (u.r === "admin");
+  var sb = ST.get("n", []);
+  var ms = ST.get("m", []);
+  var us = ST.get("u", []);
+  var adminHtml = "";
+  if (A) {
+    adminHtml = '<div class="kp"><div><b>' + us.length + '</b><span>Users</span></div><div><b>' + sb.length + '</b><span>Subscribers</span></div><div><b>' + ms.length + '</b><span>Messages</span></div><div><b>' + P.length + '</b><span>Products</span></div></div>' +
+      '<h4>Subscribers</h4>' + (sb.length ? '<ul>' + sb.map(function(x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>' : '<p class="mu">None yet.</p>') +
+      '<h4>Messages</h4>' + (ms.length ? '<ul>' + ms.map(function(m) { return '<li><b>' + esc(m.n) + '</b> (' + esc(m.e) + '): ' + esc(m.t) + '</li>'; }).join("") + '</ul>' : '<p class="mu">None yet.</p>') +
+      '<button class="bt" id="cl">Clear sample data</button>';
+  }
+  $("#ad").innerHTML = '<h3 class="sil">' + (A ? "ADMIN DASHBOARD" : "MY ACCOUNT") + '</h3><p class="mu">' + esc(u.n) + ' - ' + esc(u.e) + ' - ' + u.r + '</p>' + adminHtml + '<button class="bt" id="so">Sign out</button>';
   if (!$("#dm").open) $("#dm").showModal();
 };
 
-$("#ad").onclick = e => {
-  if (e.target.id == "so") { ST.set("s", null); ui(); $("#dm").close(); }
-  if (e.target.id == "cl") { ST.set("n", []); ST.set("m", []); dash(); }
+$("#ad").onclick = function(e) {
+  if (e.target.id === "so") { ST.set("s", null); ui(); $("#dm").close(); }
+  if (e.target.id === "cl") { ST.set("n", []); ST.set("m", []); dash(); }
 };
-$("#ab").onclick = () => me() ? dash() : $("#da").showModal();
+$("#ab").onclick = function() { me() ? dash() : $("#da").showModal(); };
 
-$("#nf").onsubmit = async ev => {
+$("#nf").onsubmit = function(ev) {
   ev.preventDefault();
-  const e = String(new FormData(ev.target).get("e")).trim().toLowerCase();
-  const n = ST.get("n", []);
-  const b = ev.target.querySelector("button");
+  var e = String(new FormData(ev.target).get("e")).trim().toLowerCase();
+  var n = ST.get("n", []);
+  var b = ev.target.querySelector("button");
   b.disabled = true;
   $("#nm").textContent = "Subscribing...";
-  await sendW3F("New Newsletter Subscriber - EMV HUB", { type: "Newsletter", email: e });
-  b.disabled = false;
-  if (!n.includes(e)) n.push(e);
-  ST.set("n", n);
-  ev.target.reset();
-  $("#nm").textContent = "You are subscribed. Welcome to the hub.";
+  sendW3F("New Newsletter Subscriber - EMV HUB", { type: "Newsletter", email: e }).then(function() {
+    b.disabled = false;
+    if (n.indexOf(e) === -1) n.push(e);
+    ST.set("n", n);
+    ev.target.reset();
+    $("#nm").textContent = "You are subscribed. Welcome to the hub.";
+  });
 };
 
-$("#cf").onsubmit = async ev => {
+$("#cf").onsubmit = function(ev) {
   ev.preventDefault();
-  const f = new FormData(ev.target);
-  const m = ST.get("m", []);
-  const name = String(f.get("n")).trim();
-  const email = String(f.get("e")).trim();
-  const message = String(f.get("t")).trim();
-  const b = ev.target.querySelector("button");
+  var f = new FormData(ev.target);
+  var m = ST.get("m", []);
+  var name = String(f.get("n")).trim();
+  var email = String(f.get("e")).trim();
+  var message = String(f.get("t")).trim();
+  var b = ev.target.querySelector("button");
   b.disabled = true;
   $("#cm").textContent = "Sending...";
-  await sendW3F("New Contact Message - EMV HUB", { type: "Contact Message", name: name, email: email, message: message });
-  b.disabled = false;
-  m.push({ n: name, e: email, t: message });
-  ST.set("m", m);
-  ev.target.reset();
-  $("#cm").textContent = "Message sent. We will reply soon.";
+  sendW3F("New Contact Message - EMV HUB", { type: "Contact Message", name: name, email: email, message: message }).then(function() {
+    b.disabled = false;
+    m.push({ n: name, e: email, t: message });
+    ST.set("m", m);
+    ev.target.reset();
+    $("#cm").textContent = "Message sent. We will reply soon.";
+  });
 };
 </script>
 </body>
