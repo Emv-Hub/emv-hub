@@ -124,9 +124,9 @@ footer{border-top:1px solid var(--ln);padding:36px 0;text-align:center;color:var
 <text x="55" y="108">CARD</text><text x="165" y="108">TERMINAL</text><text x="275" y="108">NETWORK</text><text x="385" y="108">ISSUER</text>
 <text class="cp" x="220" y="136">A unique cryptogram is created for every payment</text></svg></div></div></section>
 
-<section id="hardware"><div class="w"><div class="sh rv"><h2 class="sil">HARDWARE &amp; DEVICES</h2><p>Legal EMV development tools, smart card readers, NFC development devices and compatible testing hardware. Sample catalog: replace with your inventory.</p></div><div class="fl" id="fl"></div><div class="g" id="gp"></div></div></section>
+<section id="hardware"><div class="w"><div class="sh rv"><h2 class="sil">HARDWARE & DEVICES</h2><p>Legal EMV development tools, smart card readers, NFC development devices and compatible testing hardware. Sample catalog: replace with your inventory.</p></div><div class="fl" id="fl"></div><div class="g" id="gp"></div></div></section>
 
-<section id="software"><div class="w"><div class="sh rv"><h2 class="sil">SOFTWARE &amp; TOOLS</h2><p>Educational software, EMV test environments, smart card development resources and security testing tools.</p></div><div class="g" id="gs"></div></div></section>
+<section id="software"><div class="w"><div class="sh rv"><h2 class="sil">SOFTWARE & TOOLS</h2><p>Educational software, EMV test environments, smart card development resources and security testing tools.</p></div><div class="g" id="gs"></div></div></section>
 
 <section id="security"><div class="w"><div class="sh rv"><h2 class="sil">CYBERSECURITY</h2><p>Payment card security awareness, fraud prevention, secure payment practices and protection against card skimming.</p></div><div class="g" id="gc"></div>
 <div class="gl sp rv"><div class="rg"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="rgba(60,150,255,.2)" stroke-width="6"/><circle id="rg" cx="50" cy="50" r="42" fill="none" stroke="#00d4ff" stroke-width="6" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264" style="transform:rotate(-90deg);transform-origin:50px 50px;transition:stroke-dashoffset .6s;filter:drop-shadow(0 0 6px #00d4ff)"/></svg><b id="rn">0/5</b></div>
@@ -149,7 +149,7 @@ footer{border-top:1px solid var(--ln);padding:36px 0;text-align:center;color:var
 
 <script>
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&","<":"<",">":">",'"':""","'":"'"}[c]));
 const mem={},ST={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v??(k in mem?mem[k]:d)}catch(e){return k in mem?mem[k]:d}},set(k,v){mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const IC={chip:'<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>',wave:'<path d="M8 6c3 3 3 9 0 12M12 4c4.5 4.5 4.5 11.5 0 16M16 2c6 6 6 14 0 20"/>',nfc:'<rect x="3" y="3" width="18" height="18" rx="5"/><path d="M9 9c2 2 2 4 0 6M13 7c3.5 3.5 3.5 6.5 0 10"/>',reader:'<rect x="3" y="9" width="18" height="10" rx="2"/><path d="M7 9V5h10v4M8 14h8"/>',shield:'<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',code:'<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/>',eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'};
 const ico=n=>`<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="url(#sg)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg></span>`;
@@ -196,19 +196,29 @@ const me=()=>{const e=ST.get("s",null);return ST.get("u",[]).find(u=>u.e==e)};
 const ui=()=>{const u=me();$("#ab").textContent=u?u.n.split(" ")[0]:"Sign in"};ui();
 let mode="in";
 $$("#fa [data-m]").forEach(b=>b.onclick=()=>{mode=b.dataset.m;$$("#fa [data-m]").forEach(x=>x.classList.toggle("on",x==b));$("#fn").hidden=mode=="in";$("#sbm").textContent=mode=="in"?"SIGN IN":"CREATE ACCOUNT";$("#am").textContent=""});
+
 $("#fa").onsubmit=async ev=>{ev.preventDefault();const f=new FormData(ev.target),e=String(f.get("e")).trim().toLowerCase(),p=String(f.get("p")),m=$("#am");
 try{const AU=ST.get("u",[]);
 if(mode=="up"){if(AU.some(u=>u.e==e)){m.textContent="That email is already registered.";return}
-const s=hx(crypto.getRandomValues(new Uint8Array(8)));AU.push({n:String(f.get("n")).trim()||"Member",e,s,h:await H(s,p),r:AU.length?"member":"admin"});ST.set("u",AU)}
+const s=hx(crypto.getRandomValues(new Uint8Array(8)));AU.push({n:String(f.get("n")).trim()||"Member",e,s,h:await H(s,p),r:AU.length?"member":"admin"});ST.set("u",AU);
+fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({access_key:"fd9dd03e-2e91-47c5-8fbe-af437778ec08",subject:"New Registration on EMV Hub",name:String(f.get("n"))||"Member",email:e,message:"A new user has registered on your website."})});
+}
 else{const u=AU.find(u=>u.e==e);if(!u||u.h!=await H(u.s,p)){m.textContent="Incorrect email or password.";return}}
 ST.set("s",e);ev.target.reset();m.textContent="";$("#da").close();ui()}catch(x){m.textContent="Something went wrong. Please try again."}};
+
 const dash=()=>{const u=me();if(!u)return;const A=u.r=="admin",sb=ST.get("n",[]),ms=ST.get("m",[]),us=ST.get("u",[]);
 $("#ad").innerHTML=`<h3 class="sil">${A?"ADMIN DASHBOARD":"MY ACCOUNT"}</h3><p class="mu">${esc(u.n)} · ${esc(u.e)} · ${u.r}</p>${A?`<div class="kp">${[["Users",us.length],["Subscribers",sb.length],["Messages",ms.length],["Products",P.length]].map(k=>`<div><b>${k[1]}</b><span>${k[0]}</span></div>`).join("")}</div><h4>Subscribers</h4>${sb.length?`<ul>${sb.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:'<p class="mu">None yet.</p>'}<h4>Messages</h4>${ms.length?`<ul>${ms.map(m=>`<li><b>${esc(m.n)}</b> (${esc(m.e)}): ${esc(m.t)}</li>`).join("")}</ul>`:'<p class="mu">None yet.</p>'}<button class="bt" id="cl">Clear sample data</button>`:""}<button class="bt" id="so">Sign out</button>`;
 if(!$("#dm").open)$("#dm").showModal()};
 $("#ad").onclick=e=>{if(e.target.id=="so"){ST.set("s",null);ui();$("#dm").close()}if(e.target.id=="cl"){ST.set("n",[]);ST.set("m",[]);dash()}};
 $("#ab").onclick=()=>me()?dash():$("#da").showModal();
-$("#nf").onsubmit=ev=>{ev.preventDefault();const e=String(new FormData(ev.target).get("e")).trim().toLowerCase(),n=ST.get("n",[]);if(!n.includes(e))n.push(e);ST.set("n",n);ev.target.reset();$("#nm").textContent="You’re subscribed. Welcome to the hub."};
-$("#cf").onsubmit=ev=>{ev.preventDefault();const f=new FormData(ev.target),m=ST.get("m",[]);m.push({n:String(f.get("n")),e:String(f.get("e")),t:String(f.get("t"))});ST.set("m",m);ev.target.reset();$("#cm").textContent="Message sent. We’ll reply soon."};
+
+$("#nf").onsubmit=ev=>{ev.preventDefault();const e=String(new FormData(ev.target).get("e")).trim().toLowerCase(),n=ST.get("n",[]);if(!n.includes(e))n.push(e);ST.set("n",n);ev.target.reset();$("#nm").textContent="You’re subscribed. Welcome to the hub.";
+fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({access_key:"fd9dd03e-2e91-47c5-8fbe-af437778ec08",subject:"New Newsletter Subscriber",email:e,message:"Someone subscribed to your newsletter."})});
+};
+
+$("#cf").onsubmit=ev=>{ev.preventDefault();const f=new FormData(ev.target),m=ST.get("m",[]);m.push({n:String(f.get("n")),e:String(f.get("e")),t:String(f.get("t"))});ST.set("m",m);ev.target.reset();$("#cm").textContent="Message sent. We’ll reply soon.";
+fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({access_key:"fd9dd03e-2e91-47c5-8fbe-af437778ec08",subject:"New Contact/Order Form Submission",name:String(f.get("n")),email:String(f.get("e")),message:String(f.get("t"))})});
+};
 </script>
 </body>
 </html>
